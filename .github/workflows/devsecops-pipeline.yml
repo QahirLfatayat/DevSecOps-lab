@@ -28,7 +28,7 @@ jobs:
 
       - name: Run Bandit SAST
         run: |
-          bandit -r app/app_vulnerable.py \
+          bandit -r app/app_secure.py \
             -f json \
             -o bandit_report.json \
             --severity-level medium \
@@ -158,7 +158,7 @@ jobs:
   container-scan:
     name: 🐳 Container Security Scan
     runs-on: ubuntu-latest
-    if: hashFiles('Dockerfile') != ''
+    if: ${{ hashFiles('Dockerfile') != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -178,14 +178,14 @@ jobs:
     name: 🌐 DAST - OWASP ZAP
     runs-on: ubuntu-latest
     needs: [security-tests]
-    if: github.ref != 'refs/heads/main'
+    if: ${{ github.ref != 'refs/heads/main' }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Start Flask app
         run: |
           pip install -r app/requirements.txt
-          SECRET_KEY=testkey python app/app_vulnerable.py &
+          SECRET_KEY=testkey python app/app_secure.py &
           sleep 3
           curl -f http://127.0.0.1:5001/ || exit 1
 
@@ -208,7 +208,7 @@ jobs:
     name: 🚦 Security Gate
     runs-on: ubuntu-latest
     needs: [sast, dependency-check, security-tests, secret-scan]
-    if: always()
+    if: ${{ always() }}
     steps:
       - name: Evaluate security gate
         run: |
