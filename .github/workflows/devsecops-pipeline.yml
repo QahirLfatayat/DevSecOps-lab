@@ -28,7 +28,7 @@ jobs:
 
       - name: Run Bandit SAST
         run: |
-          bandit -r app/app_vulnerable.py \
+          bandit -r app/app_secure.py \
             -f json \
             -o bandit_report.json \
             --severity-level medium \
@@ -208,7 +208,7 @@ jobs:
       - name: Start Flask app
         run: |
           pip install -r app/requirements.txt
-          SECRET_KEY=testkey PYTHONPATH=app python app/app_vulnerable.py &
+          SECRET_KEY=testkey PYTHONPATH=app python app/app_secure.py &
           sleep 5
           curl -f http://127.0.0.1:5001/ || exit 1
 
