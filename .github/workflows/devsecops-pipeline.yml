@@ -154,11 +154,30 @@ jobs:
               exit 1
             }
 
-  # ─── Job 5: Container Security Scan (if Dockerfile present) ─────────────────
+  # ─── Job 5a: Check if Dockerfile exists ─────────────────────────────────────
+  check-dockerfile:
+    name: 🔎 Check Dockerfile Exists
+    runs-on: ubuntu-latest
+    outputs:
+      exists: ${{ steps.check.outputs.exists }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for Dockerfile
+        id: check
+        run: |
+          if [ -f "Dockerfile" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+  # ─── Job 5b: Container Security Scan (if Dockerfile present) ────────────────
   container-scan:
     name: 🐳 Container Security Scan
     runs-on: ubuntu-latest
-    if: hashFiles('Dockerfile') != ''
+    needs: [check-dockerfile]
+    if: ${{ needs.check-dockerfile.outputs.exists == 'true' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -178,7 +197,7 @@ jobs:
     name: 🌐 DAST - OWASP ZAP
     runs-on: ubuntu-latest
     needs: [security-tests]
-    if: github.ref != 'refs/heads/main'
+    if: ${{ github.ref != 'refs/heads/main' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -208,7 +227,7 @@ jobs:
     name: 🚦 Security Gate
     runs-on: ubuntu-latest
     needs: [sast, dependency-check, security-tests, secret-scan]
-    if: always()
+    if: ${{ always() }}
     steps:
       - name: Evaluate security gate
         run: |
