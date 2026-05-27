@@ -7,8 +7,8 @@ services:
   # ─── Flask Application ──────────────────────────────────────────────────────
   web:
     build:
-      context: ../session1
-      dockerfile: ../session3/Dockerfile
+      context: .
+      dockerfile: Dockerfile
     image: devsecops-lab:latest
     container_name: lab_web
     restart: unless-stopped
@@ -31,7 +31,6 @@ services:
     # Security: Prevent privilege escalation
     security_opt:
       - no-new-privileges:true
-      - seccomp:seccomp_profile.json  # Custom seccomp profile
 
     # Resource limits (DoS protection)
     deploy:
@@ -75,6 +74,7 @@ services:
   # ─── Redis (Session Store / Rate Limiter) ───────────────────────────────────
   redis:
     image: redis:7-alpine
+    user: "999:999"
     container_name: lab_redis
     restart: unless-stopped
     read_only: true
@@ -105,6 +105,7 @@ services:
     tmpfs:
       - /var/cache/nginx:size=50m
       - /var/run:size=10m
+      - /etc/nginx/conf.d:size=1m
     cap_drop:
       - ALL
     cap_add:

@@ -9,7 +9,7 @@ FROM python:3.11-slim AS builder
 WORKDIR /build
 
 # Install only build-time dependencies
-COPY requirements.txt .
+COPY app/requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
 
 
@@ -17,7 +17,7 @@ RUN pip install --no-cache-dir --user -r requirements.txt
 FROM python:3.11-slim AS production
 
 # Security: Create non-root user
-RUN groupadd -r appgroup && useradd -r -g appgroup -d /app -s /sbin/nologin appuser
+RUN groupadd -r appgroup && useradd -r -g appgroup -d /home/appuser -m -s /sbin/nologin appuser
 
 WORKDIR /app
 
@@ -25,8 +25,8 @@ WORKDIR /app
 COPY --from=builder /root/.local /home/appuser/.local
 
 # Copy application code
-COPY --chown=appuser:appgroup app_secure.py .
-COPY --chown=appuser:appgroup templates/ ./templates/
+COPY --chown=appuser:appgroup app/app_secure.py .
+COPY --chown=appuser:appgroup app/templates/ ./templates/
 
 # Security: Remove package manager after use (reduce attack surface)
 RUN apt-get update && \
