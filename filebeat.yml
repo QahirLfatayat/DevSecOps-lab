@@ -1,0 +1,18 @@
+filebeat.inputs:
+  - type: container
+    paths:
+      # This glob pattern picks up logs from ALL running containers
+      - /var/lib/docker/containers/*/*.log
+    processors:
+      # This adds container name/image metadata to each log line
+      - add_docker_metadata:
+          host: "unix:///var/run/docker.sock"
+
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
+
+# Tell Filebeat to parse the log line as JSON automatically
+# Your security_monitoring.py already emits JSON, so this unpacks it
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
